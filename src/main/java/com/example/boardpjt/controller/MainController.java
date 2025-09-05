@@ -1,6 +1,9 @@
 package com.example.boardpjt.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller // view resolver
@@ -8,5 +11,14 @@ public class MainController {
     @GetMapping
     public String index() {
         return "index";
+    }
+
+    // 마이페이지 만들자~ // 일단 model로 전달하자
+    @GetMapping("/my-page")
+    public String myPage(Model model, Authentication authentication) {
+        if (authentication != null) {
+            model.addAttribute("username", authentication.getName());
+        }
+        return "my-page";
     }
 }
