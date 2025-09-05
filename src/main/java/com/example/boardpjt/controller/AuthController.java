@@ -62,18 +62,20 @@ public class AuthController {
                         RedirectAttributes redirectAttributes) {
         try {
             // 인증 시도
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(
+                            username, password
+                    ));
 
-            // JWT 발급 -> 쿠키로 저장
-            String accessToken = jwtUtil.generateToken(username, "ROLE_" + authentication.getAuthorities().toString(), false);
-            ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+            // JWT 발급 -> 쿠키 로 저장
+            String accessToken = jwtUtil.generateToken(username, authentication.getAuthorities().toString(), false);
+            ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
                     .httpOnly(true)
                     .path("/")
-                    // 얜 밀리세컨드가 아닌 그냥 세컨드 기준
-                    .maxAge(3600)
+                    .maxAge(3600) // s, ms(x)
                     .build();
+            // "Set-Cookie"
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
             // 마이페이지로 이동
             return "redirect:/my-page";
         } catch (Exception e) {

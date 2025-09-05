@@ -1,6 +1,5 @@
 package com.example.boardpjt.filter;
 
-
 import com.example.boardpjt.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,6 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         if (request.getCookies() != null) { // 요청에 쿠키가 있는데
             for (Cookie c : request.getCookies()) {
+                // access_token
                 if (c.getName().equals("access_token")) {
                     token = c.getValue();
                     break;
@@ -41,6 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token == null) {
             filterChain.doFilter(request, response); // 다음 필터로 넘겨
+            return; // 이거 return 안 하면 두 개 그려짐
         }
 
         try {
