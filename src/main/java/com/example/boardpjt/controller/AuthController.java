@@ -4,6 +4,7 @@ import com.example.boardpjt.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller // 이 파일도 화면과 관련된 거니까 Controller. view -> template -> html(thymeleaf)
 @RequiredArgsConstructor // 생성자 주입
@@ -21,10 +22,21 @@ public class AuthController {
     @PostMapping("/register") // POST 방법
     // requestbody 같은 경우는 restController에서 쓰임
     public String register(@RequestParam String username,
-                           @RequestBody String password) {
+                           @RequestBody String password,
+                           RedirectAttributes redirectAttributes) {
         // @Valid -> 유효성 검증 -> 나중에 통합 버전에 추가해놓으시겠대
-        userAccountService.register(username, password); // register 라는 서비스로 연결해줌
-        return "redirect:/";
+        try {
+            userAccountService.register(username, password); // register 라는 서비스로 연결해줌
+            return "redirect:/";
+        } catch (IllegalArgumentException e) {
+            // 중복 사용자
+            // redirectAttributes.addAttribute("error", e.getMessage()); // Model이 받아서 쓸 수 있게 RequestParam으로 주는 것
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            // 자동으로 model에 넣어줘서 request attribute로 꺼내 쓸 수 있음 // 위에껄로 했더니 주소창에 "이미 존재하는 사용자" 라고 뜸
+            // Flash로 해주니까 화면에 글씨 뜸
+            return "redirect:/auth/register";
+        }
+
         // return "redirect:/auth/login"; // login은 없으니까 403?
     }
 }
