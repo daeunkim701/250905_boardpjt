@@ -1,5 +1,6 @@
 package com.example.boardpjt.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class JwtUtil {
         System.out.println("refreshExpiry = " + refreshExpiry);
     }
 
+    // 토큰 만들고
     public String generateToken(String username, String role, boolean isRefresh) {
         // 일단은 Access만 구현
         return Jwts.builder()
@@ -42,4 +44,29 @@ public class JwtUtil {
                 .compact();
     }
 
+    public Claims getClaims(String token) { // token을 요청해서 번역하는 것
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload(); // 데이터 다 들어있음
+    }
+
+    public String getUsername(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token); // 정상적인 토큰
+            return true;
+        } catch (Exception e) {
+            // Secret, 형식, 만료
+            return false;
+        }
+    }
 }
