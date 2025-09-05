@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 // 기본 생성자
 // @Table -> 필수는 아님. 테이블명을 바꿔주고 싶다던가...
-public class UserAccount { // DB에 UserAccount라고 만들어져
+public class UserAccount { // DB에 UserAccount라고 만들어져 -> user_account로 생김
+    // 오류나서 DBeaver 가서 user_account 테이블 지우니까 실행 잘 됨
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // MYSQL의 AUTO_INCREMENT
     private Long id;
