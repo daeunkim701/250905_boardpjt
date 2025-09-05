@@ -1,5 +1,9 @@
 package com.example.boardpjt.config;
 
+import com.example.boardpjt.filter.JwtFilter;
+import com.example.boardpjt.service.CustomUserDetailsService;
+import com.example.boardpjt.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,15 +11,21 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Controller;
 
 @Configuration // 설정 파일
 @EnableWebSecurity // 시큐리티 활성화
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
+
     // 세 가지 등록해야함
     // 1. Security Filter Chain
     @Bean // 주입해주겠다는 뜻이니까 Bean 달아야 한다.
@@ -25,14 +35,20 @@ public class SecurityConfig {
         // 비활성화 설정들이 있고
         http.csrf(AbstractHttpConfigurer::disable) // 내부에 있는 걸 다 비활성화 하겠다로 퉁칠 수 있음
                 .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
-                // session policy는 좀 나중에
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                // session policy!!
 
         // 보안 설정들이 있어
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/register").permitAll()
+                .requestMatchers("/", "/auth/**").permitAll()
+                .requestMatchers("/my-page").authenticated() // 로그인 성공했을 시 가는 페이지
                 .anyRequest().authenticated()
-        );
+        )
+                .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendRedirect("/auth/login")));
+        // 필터 추가
+        http.addFilterBefore(new JwtFilter(jwtUtil, userDetailsService),
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
